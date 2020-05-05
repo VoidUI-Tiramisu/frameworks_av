@@ -180,6 +180,8 @@ status_t HidlCamera3Device::initialize(sp<CameraProviderManager> manager,
             // Do not override characteristics for physical cameras
             res = manager->getCameraCharacteristics(
                     physicalId, /*overrideForPerfClass*/false, &mPhysicalDeviceInfoMap[physicalId]);
+                    physicalId, /*overrideForPerfClass*/false, &mPhysicalDeviceInfoMap[physicalId],
+                    /*overrideToPortrait*/true);
             // HACK for ginkgo - check camera id 20 for depth sensor
             if (res != OK) {
                 CLOGW("Could not retrieve camera %s characteristics: %s (%d)",
@@ -187,7 +189,8 @@ status_t HidlCamera3Device::initialize(sp<CameraProviderManager> manager,
                 physicalId = std::to_string(20); // TODO: Maybe make this a soong config?
                 CLOGW("Trying physical camera %s if available", physicalId.c_str());
                 res = manager->getCameraCharacteristics(
-                        physicalId, false, &mPhysicalDeviceInfoMap[physicalId]);
+                      //  physicalId, false, &mPhysicalDeviceInfoMap[physicalId]);
+                        physicalId, false, &mPhysicalDeviceInfoMap[physicalId], true);
                 if (res != OK) {
                     SET_ERR_L("Could not retrieve camera %s characteristics: %s (%d)",
                             physicalId.c_str(), strerror(-res), res);
