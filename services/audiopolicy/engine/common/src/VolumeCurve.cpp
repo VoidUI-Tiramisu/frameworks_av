@@ -76,17 +76,19 @@ float VolumeCurve::volIndexToDb(int indexInUi, int volIndexMin, int volIndexMax)
     }
     // linear interpolation in the attenuation table in dB
     float decibels = (mCurvePoints[indexInUiPosition - 1].mAttenuationInMb / 100.0f) +
-            ((float)(volIdx - mCurvePoints[indexInUiPosition - 1].mIndex)) *
-                ( ((mCurvePoints[indexInUiPosition].mAttenuationInMb / 100.0f) -
-                        (mCurvePoints[indexInUiPosition - 1].mAttenuationInMb / 100.0f)) /
+            (((float)(volIdx - mCurvePoints[indexInUiPosition - 1].mIndex)) *
+                ( (mCurvePoints[indexInUiPosition].mAttenuationInMb / 100.0f) -
+                        (mCurvePoints[indexInUiPosition - 1].mAttenuationInMb / 100.0f))) /
                     ((float)(mCurvePoints[indexInUiPosition].mIndex -
-                            mCurvePoints[indexInUiPosition - 1].mIndex)) );
+                            mCurvePoints[indexInUiPosition - 1].mIndex));
 
     ALOGV("VOLUME vol index=[%d %d %d], dB=[%.1f %.1f %.1f]",
             mCurvePoints[indexInUiPosition - 1].mIndex, volIdx,
             mCurvePoints[indexInUiPosition].mIndex,
             ((float)mCurvePoints[indexInUiPosition - 1].mAttenuationInMb / 100.0f), decibels,
             ((float)mCurvePoints[indexInUiPosition].mAttenuationInMb / 100.0f));
+    if(decibels > 0.0)
+        decibels = 0.0;
 
     return decibels;
 }
