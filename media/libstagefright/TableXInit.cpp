@@ -5,7 +5,7 @@
  * production of derivative works therefrom without the express permission of
  * the copyright owners is prohibited.
  *
- *              Copyright (C) 2017 by Dolby International AB.
+ *              Copyright (C) 2017-2018 by Dolby Laboratories.
  *                            All rights reserved.
  ******************************************************************************/
 
@@ -31,51 +31,39 @@ TableXInit::TableXInit(uint8_t table_id, uint8_t mask_val)
 void
 TableXInit::init()
 {
-    union SCRAMBLED_TABLE_PT
-    {
+    union SCRAMBLED_TABLE_PT {
         unsigned char  *ui8;
         unsigned int   *ui32;
     } scramble_table_pt;
 
     scramble_table_pt.ui32 = scrambled_table;
 
-    if (   _table_id == AC4_TABLE_SEC_FRS_CODE
-        && _isTableXInitialized == 0 )
-    {
+    if (_table_id == AC4_TABLE_SEC_FRS_CODE && _isTableXInitialized == 0) {
 
         _buffer_size = LUT_BUFFER_SIZE;
 
-        for(unsigned int i = 0; i < _buffer_size; i++)
-        {
-            _buffer[i] = _table_a_u8[i] ^ (  scramble_table_pt.ui8[ ( i + _session_seed ) % LUT_BUFFER_SIZE]
-                                            ^ scramble_table_pt.ui8[ ( i + _session_seed + _mask_val) % LUT_BUFFER_SIZE] );
+        for (unsigned int i = 0; i < _buffer_size; i++) {
+            _buffer[i] = _table_a_u8[i] ^ (scramble_table_pt.ui8[ (i + _session_seed) % LUT_BUFFER_SIZE] ^
+                                           scramble_table_pt.ui8[ (i + _session_seed + _mask_val) % LUT_BUFFER_SIZE]);
         }
         _isTableXInitialized = 1;
-    }
-    else
-    if (   _table_id == AC4_TABLE_SEC_MDD_MAX_FRAM
-        && _isTableXInitialized == 0 )
-    {
+    } else if (_table_id == AC4_TABLE_SEC_MDD_MAX_FRAM  &&
+               _isTableXInitialized == 0) {
         _buffer_size = TABLE_B_C_U8_SZ;
 
-        for(unsigned int i = 0; i < _buffer_size; i++)
-        {
-            _buffer[i] = _table_b_u8[i] ^ (  scramble_table_pt.ui8[ ( i + _session_seed ) % LUT_BUFFER_SIZE]
-                                           ^ scramble_table_pt.ui8[ ( i + _session_seed + _mask_val ) % LUT_BUFFER_SIZE] );
+        for (unsigned int i = 0; i < _buffer_size; i++) {
+            _buffer[i] = _table_b_u8[i] ^ (scramble_table_pt.ui8[ (i + _session_seed) % LUT_BUFFER_SIZE] ^
+                                           scramble_table_pt.ui8[ (i + _session_seed + _mask_val) % LUT_BUFFER_SIZE]);
         }
         _isTableXInitialized = 1;
-    }
-    else
-    if (   _table_id == AC4_TABLE_SEC_MDD_MAX_INST
-        && _isTableXInitialized == 0 )
-    {
+    } else if (_table_id == AC4_TABLE_SEC_MDD_MAX_INST &&
+               _isTableXInitialized == 0) {
 
         _buffer_size = TABLE_B_C_U8_SZ;
 
-        for(unsigned int i = 0; i < _buffer_size; i++)
-        {
-            _buffer[i] = _table_c_u8[i] ^ (  scramble_table_pt.ui8[ ( i + _session_seed ) % LUT_BUFFER_SIZE]
-                                           ^ scramble_table_pt.ui8[ ( i + _session_seed + _mask_val ) % LUT_BUFFER_SIZE] );
+        for (unsigned int i = 0; i < _buffer_size; i++) {
+            _buffer[i] = _table_c_u8[i] ^ (scramble_table_pt.ui8[ (i + _session_seed) % LUT_BUFFER_SIZE] ^
+                                           scramble_table_pt.ui8[ (i + _session_seed + _mask_val) % LUT_BUFFER_SIZE]);
         }
         _isTableXInitialized = 1;
     }
@@ -90,8 +78,7 @@ TableXInit::~TableXInit()
 
     _isTableXInitialized = 0;
 
-    for (int i = 0; i < MAX_BUFFER_SIZE; i++)
-    {
+    for (int i = 0; i < MAX_BUFFER_SIZE; i++) {
         _buffer[i] = 0;
     }
 }

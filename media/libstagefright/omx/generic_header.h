@@ -5,7 +5,7 @@
  * production of derivative works therefrom without the express permission of
  * the copyright owners is prohibited.
  *
- *                Copyright (C) 2017 by Dolby International AB.
+ *                Copyright (C) 2017-2018 by Dolby Laboratories.
  *                            All rights reserved.
  ******************************************************************************/
 
@@ -35,6 +35,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+// #ifdef DOLBY_AC4_SPLIT_SEC
+
 #define LOG_DUALIS_TABLE_SIZE   65   /**< Number of entries for ld(x) lookup table used by DLB_logDualisDiv8(x) */
 
 static float get_num_octaves_div8(unsigned int a, unsigned int b);
@@ -59,14 +61,13 @@ unsigned int function_a (unsigned int sbx, unsigned int sbz);
  */
 void
 function_b
-    (unsigned int                       num_sbg_sig_highres     /**< [in]     Number high resolution subband groups. */
-    ,unsigned int                       aspx_sbg_start          /**< [in]     A-SPX start subband group. */
-    ,signed int                         aspx_tsg_ptr            /**< [in]     Pointer to envelope border signalling sine start
-                                                                              envelope */
-    ,unsigned long                      aspx_add_harmonic       /**< [in]     Sinusoid insertion flags (one bit per sbg). */
-    ,unsigned int                      *p_sine_start_env        /**< [in,out] An array indicating the sine start envelope per
-                                                                              subband group. */
-    );
+    (unsigned int                       num_sbg_sig_highres,     /**< [in]     Number high resolution subband groups. */
+     unsigned int                       aspx_sbg_start,          /**< [in]     A-SPX start subband group. */
+     signed int                         aspx_tsg_ptr,            /**< [in]     Pointer to envelope border signalling sine start
+                                                                               envelope */
+     unsigned long                      aspx_add_harmonic,       /**< [in]     Sinusoid insertion flags (one bit per sbg). */
+     unsigned int                       *p_sine_start_env);      /**< [in,out] An array indicating the sine start envelope per
+                                                                               subband group. */
 
 
 #define GET_CONFIG_EVENT(config_change)               \
@@ -85,20 +86,19 @@ function_b
  *
  * Please note, that the order of the messages does matter.
  */
-typedef enum
-{
-    UNDEFINED          = -1
+typedef enum {
+    UNDEFINED          = -1,
 
     /* lower nibble reserved for configuration event messages */
-   ,NO_CHANGE          = 0x00 /* Nothing changed, normal processing. */
-   ,SEAMLESS           = 0x01 /* Perfect transition, only used in combination with frame rate switches between multiples. */
-   ,GAPLESS            = 0x02 /* No silence gap in between. */
-   ,CLEAN              = 0x03 /* Something better than GAPLESS but not as good as SEAMLESS, still needs to be defined. */
-   ,SPLICE             = 0x04 /* A SPLICE always introduces silence gaps. */
+    NO_CHANGE          = 0x00, /* Nothing changed, normal processing. */
+    SEAMLESS           = 0x01, /* Perfect transition, only used in combination with frame rate switches between multiples. */
+    GAPLESS            = 0x02, /* No silence gap in between. */
+    CLEAN              = 0x03, /* Something better than GAPLESS but not as good as SEAMLESS, still needs to be defined. */
+    SPLICE             = 0x04, /* A SPLICE always introduces silence gaps. */
 
     /* upper nibble reserved for frame event messages */
-   ,FRAME_DROP         = 0x10
-   ,FRAME_REPETITION   = 0x20
+    FRAME_DROP         = 0x10,
+    FRAME_REPETITION   = 0x20
 } cch_config_change_t;
 
 /**
@@ -108,15 +108,13 @@ typedef enum
  */
 static inline unsigned int
 cch_get_slice_index
-    (unsigned int              sequence_counter               /**< [in] Sequence counter. */
-    ,unsigned int              frame_rate_fraction            /**< [in] Frame rate fraction. */
-    )
+    (unsigned int              sequence_counter,               /**< [in] Sequence counter. */
+     unsigned int              frame_rate_fraction)            /**< [in] Frame rate fraction. */
 {
     return sequence_counter & (frame_rate_fraction - 1);
 }
 
-typedef struct cch_frame_data_s
-{
+typedef struct cch_frame_data_s {
     cch_config_change_t        config_change;                 /**< Configuration change.
                                                                    Can be of types: NO_CHANGE, SEAMLESS, GAPLESS,
                                                                    CLEAN, SPLICE, FRAME_DROP, FRAME_REPETITION */
@@ -132,30 +130,31 @@ typedef struct cch_frame_data_s
  */
 int
 function_c
-    (int                       b_collection_frame_previous    /* [in] Flag indicating if the previous frame was a collection
-                                                                      frame. */
-    ,unsigned int              sequence_counter_current       /* [in] Sequence counter of current frame. */
-    ,unsigned int              frame_rate_fraction_previous   /* [in] Frame rate fraction of previous frame. */
-    ,unsigned int              frame_rate_fraction_current    /* [in] Frame rate fraction of current frame. */
-    ,unsigned int              length_frame_delayed           /* [in] Length of the delayed frame in units of short frame
-                                                                      equivalents. */
-    ,unsigned int              length_frame_current           /* [in] Length of the current frame in units of short frame
-                                                                      equivalents. */
-    ,cch_config_change_t      *p_config_change                /* [in,out] Configuration change. */
-    ,unsigned int             *p_length_frames_collected      /* [in,out] Stores the overall length of collected frames in units of
-                                                                          short frame equivalents.
-                                                                          This variable is updated within this function. */
-    ,unsigned int             *p_num_frames_collected         /* [in,out] Stores the number of collected frames during a
-                                                                          collection phase.
-                                                                          This variable is updated within this function. */
-    ,unsigned int             *p_num_slices_available         /* [in,out] Slice counter holding the number of available slices.
-                                                                          This variable is updated within this function. */
-    ,cch_config_change_t      *p_config_change_previous       /* [out] Config change of previous frame. */
-    ,cch_frame_data_t         *p_frame_data_current           /* [out] Frame data structure to be filled. */
-    );
+    (int                       b_collection_frame_previous,    /* [in] Flag indicating if the previous frame was a collection
+                                                                       frame. */
+     unsigned int              sequence_counter_current,       /* [in] Sequence counter of current frame. */
+     unsigned int              frame_rate_fraction_previous,   /* [in] Frame rate fraction of previous frame. */
+     unsigned int              frame_rate_fraction_current,    /* [in] Frame rate fraction of current frame. */
+     unsigned int              length_frame_delayed,           /* [in] Length of the delayed frame in units of short frame
+                                                                       equivalents. */
+     unsigned int              length_frame_current,           /* [in] Length of the current frame in units of short frame
+                                                                       equivalents. */
+     cch_config_change_t      *p_config_change,                /* [in,out] Configuration change. */
+     unsigned int             *p_length_frames_collected,      /* [in,out] Stores the overall length of collected frames in units of
+                                                                           short frame equivalents.
+                                                                           This variable is updated within this function. */
+     unsigned int             *p_num_frames_collected,         /* [in,out] Stores the number of collected frames during a
+                                                                           collection phase.
+                                                                           This variable is updated within this function. */
+     unsigned int             *p_num_slices_available,         /* [in,out] Slice counter holding the number of available slices.
+                                                                           This variable is updated within this function. */
+     cch_config_change_t      *p_config_change_previous,       /* [out] Config change of previous frame. */
+     cch_frame_data_t         *p_frame_data_current);          /* [out] Frame data structure to be filled. */
 
 #else
 
 //#error "libstagefright: AC4 Split Security Architecture unsupported"
+
+//#endif // DOLBY_AC4_SPLIT_SEC
 
 #endif // GENERIC_HEADER_H

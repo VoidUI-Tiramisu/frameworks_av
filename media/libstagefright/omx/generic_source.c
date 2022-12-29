@@ -5,7 +5,7 @@
  * production of derivative works therefrom without the express permission of
  * the copyright owners is prohibited.
  *
- *              Copyright (C) 2017 by Dolby International AB.
+ *              Copyright (C) 2017-2018 by Dolby Laboratories.
  *                            All rights reserved.
  ******************************************************************************/
 
@@ -21,8 +21,7 @@
 
 #include "generic_header.h"
 
-#define LOG_TAG "generic_source"
-
+// #ifdef DOLBY_AC4_SPLIT_SEC
 #define DLB_ScF(a) ((float)(a))
 static const float Q15 = 32768.0f;
 
@@ -128,8 +127,7 @@ static const float a_log_dualis[LOG_DUALIS_TABLE_SIZE] = {
 */
 static inline float
 log_dualis_div8
-    (unsigned int a  /**< Index for logarithm table */
-    )
+    (unsigned int a)  /**< Index for logarithm table */
 {
     //DLB_assert(a<LOG_DUALIS_TABLE_SIZE, "ASPX", "Index for a_log_dualis[] out of range.");
     return a_log_dualis[a];
@@ -144,14 +142,13 @@ log_dualis_div8
 
    @return   ld(a/b) / 8
 */
-static float get_num_octaves_div8(unsigned int a  /**< lower band */
-                                      ,unsigned int b  /**< upper band */
-                                       )
+static float get_num_octaves_div8(unsigned int a,  /**< lower band */
+                                  unsigned int b)  /**< upper band */
 {
     return DLB_SsubSS(log_dualis_div8(b), log_dualis_div8(a));
 }
 
-unsigned int function_a (unsigned int sbx, unsigned int sbz)
+unsigned int function_a(unsigned int sbx, unsigned int sbz)
 {
     return (unsigned)DLB_16srndS(DLB_SshrSU((get_num_octaves_div8(sbx, sbz)), 2));
 
@@ -159,12 +156,11 @@ unsigned int function_a (unsigned int sbx, unsigned int sbz)
 
 void
 function_b
-    (unsigned int                       num_sbg_sig_highres
-    ,unsigned int                       aspx_sbg_start
-    ,signed int                         aspx_tsg_ptr
-    ,unsigned long                      aspx_add_harmonic
-    ,unsigned int                      *p_sine_start_env
-    )
+    (unsigned int                       num_sbg_sig_highres,
+     unsigned int                       aspx_sbg_start,
+     signed int                         aspx_tsg_ptr,
+     unsigned long                      aspx_add_harmonic,
+     unsigned int                      *p_sine_start_env)
 {
     unsigned int sbg;
     unsigned int aspx_sbg_stop = aspx_sbg_start + num_sbg_sig_highres;
@@ -172,40 +168,29 @@ function_b
     //DLB_assert(aspx_sbg_stop <= MAX_NUM_SBG_SIG_HIRES, "ASPX", "Calculated A-SPX stop subband group (aspx_sbg_stop) exceeds maximum number of A-SPX subband groups.");
 
     /* Reset all envelope values below aspx_sbg_start. */
-    for (sbg = 0; sbg < aspx_sbg_start; sbg++)
-    {
+    for (sbg = 0; sbg < aspx_sbg_start; sbg++) {
         p_sine_start_env[sbg] = MAX_NUM_ATSG_SIG;
     }
 
     /* Loop over subband groups within active A-SPX range */
-    for (; sbg < aspx_sbg_stop; sbg++)
-    {
+    for (; sbg < aspx_sbg_stop; sbg++) {
         /* sine to be added in current subband group */
-        if (ADD_HARMONIC(aspx_add_harmonic, sbg - aspx_sbg_start))
-        {
+        if (ADD_HARMONIC(aspx_add_harmonic, sbg - aspx_sbg_start)) {
             /* Sine starts at the first envelope when
                - there is no transient envelope
                - or a sine was present in previous frame's subband group */
-            if (aspx_tsg_ptr == -1 || p_sine_start_env[sbg] != MAX_NUM_ATSG_SIG)
-            {
+            if (aspx_tsg_ptr == -1 || p_sine_start_env[sbg] != MAX_NUM_ATSG_SIG) {
                 p_sine_start_env[sbg] = 0;
-            }
-            /* sine starts at envelope indicated by pointer */
-            else
-            {
+            } else { /* sine starts at envelope indicated by pointer */
                 p_sine_start_env[sbg] = aspx_tsg_ptr;
             }
-        }
-        /* no sine present */
-        else
-        {
+        } else { /* no sine present */
             p_sine_start_env[sbg] = MAX_NUM_ATSG_SIG;
         }
     }
 
     /* Reset all envelope values above num_sbg_sig_hires up to the max. */
-    for (; sbg < MAX_NUM_SBG_SIG_HIRES; sbg++)
-    {
+    for (; sbg < MAX_NUM_SBG_SIG_HIRES; sbg++) {
         p_sine_start_env[sbg] = MAX_NUM_ATSG_SIG;
     }
 }
@@ -218,44 +203,35 @@ function_b
  */
 static inline int
 function_c_aux
-    (unsigned int              sequence_counter               /* [in] Sequence counter. */
-    ,unsigned int              frame_rate_fraction            /* [in] Frame rate fraction. */
-    ,cch_config_change_t       config_change                  /* [in] Configuration change. */
-    ,unsigned int             *p_num_slices_available         /* [in,out] Slice counter holding the number of available slices.
+    (unsigned int              sequence_counter,               /* [in] Sequence counter. */
+     unsigned int              frame_rate_fraction,            /* [in] Frame rate fraction. */
+     cch_config_change_t       config_change,                  /* [in] Configuration change. */
+     unsigned int             *p_num_slices_available,         /* [in,out] Slice counter holding the number of available slices.
                                                                           This variable is updated within this function. */
-    ,int                      *pb_dropped_first_slice         /* [out] Flag indicating that the first slice of an EHFR frame
+     int                      *pb_dropped_first_slice)         /* [out] Flag indicating that the first slice of an EHFR frame
                                                                        has been dropped. */
-    )
 {
     const unsigned int max_slice_index = frame_rate_fraction - 1;
 
     *pb_dropped_first_slice = 0;
 
     /* reset number of slices */
-    if (    ((sequence_counter & max_slice_index) == 0)
-         || (SPLICE == GET_CONFIG_EVENT(config_change))
-       )
-    {
+    if (((sequence_counter & max_slice_index) == 0)
+         || (SPLICE == GET_CONFIG_EVENT(config_change))) {
         *p_num_slices_available = 0;
-    }
-    else if (FRAME_DROP == GET_FRAME_EVENT(config_change))
-    {
+    } else if (FRAME_DROP == GET_FRAME_EVENT(config_change)) {
         /* check if the start frame was dropped */
-        if (((sequence_counter - 1) & max_slice_index) == 0)
-        {
+        if (((sequence_counter - 1) & max_slice_index) == 0) {
             *p_num_slices_available = 0;
 
-            if (frame_rate_fraction > 1)
-            {
+            if (frame_rate_fraction > 1) {
                 /* For frame rate fraction values greater than one, the decoder shall process an output frame.
                    Therefore, we count the dropped frames as well. The decoder is supposed to conceal for an incomplete frame,
                    which results in silence at the output. */
                 *p_num_slices_available = 1;
                 *pb_dropped_first_slice = 1;
             }
-        }
-        else
-        {
+        } else {
             ++(*p_num_slices_available);
         }
     }
@@ -270,27 +246,26 @@ function_c_aux
  */
 int
 function_c
-    (int                       b_collection_frame_previous    /* [in] Flag indicating if the previous frame was a collection
+    (int                       b_collection_frame_previous,    /* [in] Flag indicating if the previous frame was a collection
                                                                       frame. */
-    ,unsigned int              sequence_counter_current       /* [in] Sequence counter of current frame. */
-    ,unsigned int              frame_rate_fraction_previous   /* [in] Frame rate fraction of previous frame. */
-    ,unsigned int              frame_rate_fraction_current    /* [in] Frame rate fraction of current frame. */
-    ,unsigned int              length_frame_delayed           /* [in] Length of the delayed frame in units of short frame
+     unsigned int              sequence_counter_current,       /* [in] Sequence counter of current frame. */
+     unsigned int              frame_rate_fraction_previous,   /* [in] Frame rate fraction of previous frame. */
+     unsigned int              frame_rate_fraction_current,    /* [in] Frame rate fraction of current frame. */
+     unsigned int              length_frame_delayed,           /* [in] Length of the delayed frame in units of short frame
                                                                       equivalents. */
-    ,unsigned int              length_frame_current           /* [in] Length of the current frame in units of short frame
+     unsigned int              length_frame_current,           /* [in] Length of the current frame in units of short frame
                                                                       equivalents. */
-    ,cch_config_change_t      *p_config_change                /* [in,out] Configuration change. */
-    ,unsigned int             *p_length_frames_collected      /* [in,out] Stores the overall length of collected frames in units of
+     cch_config_change_t      *p_config_change,                /* [in,out] Configuration change. */
+     unsigned int             *p_length_frames_collected,      /* [in,out] Stores the overall length of collected frames in units of
                                                                           short frame equivalents.
                                                                           This variable is updated within this function. */
-    ,unsigned int             *p_num_frames_collected         /* [in,out] Stores the number of collected frames during a
+     unsigned int             *p_num_frames_collected,         /* [in,out] Stores the number of collected frames during a
                                                                           collection phase.
                                                                           This variable is updated within this function. */
-    ,unsigned int             *p_num_slices_available         /* [in,out] Slice counter holding the number of available slices.
+     unsigned int             *p_num_slices_available,         /* [in,out] Slice counter holding the number of available slices.
                                                                           This variable is updated within this function. */
-    ,cch_config_change_t      *p_config_change_previous       /* [out] Config change of previous frame. */
-    ,cch_frame_data_t         *p_frame_data_current           /* [out] Frame data structure to be filled. */
-    )
+     cch_config_change_t      *p_config_change_previous,       /* [out] Config change of previous frame. */
+     cch_frame_data_t         *p_frame_data_current)           /* [out] Frame data structure to be filled. */
 {
     const unsigned int max_slice_index_previous  = frame_rate_fraction_previous - 1;
     const unsigned int max_slice_index_current   = frame_rate_fraction_current - 1;
@@ -301,24 +276,19 @@ function_c
     int                b_dropped_first_slice;
 
     /* reset frame length collector variable in case of splice */
-    if (    (SPLICE == GET_CONFIG_EVENT(*p_config_change))
-         || (    (FRAME_DROP == GET_FRAME_EVENT(*p_config_change))
+    if ((SPLICE == GET_CONFIG_EVENT(*p_config_change))
+         || ((FRAME_DROP == GET_FRAME_EVENT(*p_config_change))
               && (!b_collection_frame_previous)
-              && (0 == (sequence_counter_current & max_slice_index_current))
-            ) /* frame drop at last slice of previous frame */
-       )
-    {
+              && (0 == (sequence_counter_current & max_slice_index_current)))) { /* frame drop at last slice of previous frame */
         *p_length_frames_collected = 0;
     }
 
     /* reset collection frame counter variable */
-    if (0 == *p_length_frames_collected)
-    {
+    if (0 == *p_length_frames_collected) {
         *p_num_frames_collected = 0;
     }
 
-    if (FRAME_REPETITION == GET_FRAME_EVENT(*p_config_change))
-    {
+    if (FRAME_REPETITION == GET_FRAME_EVENT(*p_config_change)) {
         p_frame_data_current->b_frame_complete   = frame_rate_fraction_current == 1;
         p_frame_data_current->b_collection_frame = (length_frame_delayed > length_frame_current) ? 1 : b_collection_frame_previous;
 
@@ -328,17 +298,14 @@ function_c
     }
 
     /* determine and assign frame completion flag */
-    p_frame_data_current->b_frame_complete = function_c_aux
-        (sequence_counter_current
-        ,frame_rate_fraction_current
-        ,*p_config_change
-        ,p_num_slices_available
-        ,&b_dropped_first_slice
-        );
+    p_frame_data_current->b_frame_complete = function_c_aux(sequence_counter_current,
+                                                            frame_rate_fraction_current,
+                                                            *p_config_change,
+                                                            p_num_slices_available,
+                                                            &b_dropped_first_slice);
 
     /* determine collection frame flag */
-    if (1 == (*p_num_slices_available - b_dropped_first_slice))
-    {
+    if (1 == (*p_num_slices_available - b_dropped_first_slice)) {
         /* increase the frame length counter only if there is a decodable frame available */
         *p_length_frames_collected += length_frame_current;
         (*p_num_frames_collected)++;
@@ -347,42 +314,30 @@ function_c
     /* determine completion flag */
     p_frame_data_current->b_collection_frame = *p_length_frames_collected < length_frame_delayed;
 
-    if (    (!p_frame_data_current->b_collection_frame)
-         && (p_frame_data_current->b_frame_complete)
-       )
-    {
+    if ((!p_frame_data_current->b_collection_frame) &&
+        (p_frame_data_current->b_frame_complete)) {
         /* On exit of the collection phase, the overall collection frame length is reset.
            Note, that the number of collected frames (num_frames_collected) is needed later on. Hence this variable is reset when
            entering this function. */
         *p_length_frames_collected = 0;
     }
 
-    if (FRAME_DROP == GET_FRAME_EVENT(*p_config_change))
-    {
+    if (FRAME_DROP == GET_FRAME_EVENT(*p_config_change)) {
         /* mark an EHFR frame as dropped */
-        if (    (frame_rate_fraction_current > 1)
-             && (frame_rate_fraction_previous > 1)
-           ) /* previous and current frame are EHFR frames */
-        {
+        if ((frame_rate_fraction_current > 1) &&
+            (frame_rate_fraction_previous > 1)) { /* previous and current frame are EHFR frames */
             SET_FRAME_EVENT(*p_config_change, FRAME_DROP);
 
-            if (slice_index_previous == max_slice_index_previous)
-            {
+            if (slice_index_previous == max_slice_index_previous) {
                 b_dropped_last_slice = 1;
             }
-        }
-        else if (    (1 == frame_rate_fraction_current)
-                  && (frame_rate_fraction_previous > 1)
-                  && (slice_index_previous < max_slice_index_previous)
-                ) /* current frame is self-contained */
-        {
+        } else if ((1 == frame_rate_fraction_current) &&
+                   (frame_rate_fraction_previous > 1) &&
+                   (slice_index_previous < max_slice_index_previous)) { /* current frame is self-contained */
             SET_FRAME_EVENT(*p_config_change_previous, FRAME_DROP);
-        }
-        else if (    (frame_rate_fraction_current > 1)
-                  && (1 == frame_rate_fraction_previous)
-                  && (slice_index_current > 0)
-                ) /* previous frame was self-contained */
-        {
+        } else if ((frame_rate_fraction_current > 1) &&
+                   (1 == frame_rate_fraction_previous) &&
+                   (slice_index_current > 0)) { /* previous frame was self-contained */
             SET_FRAME_EVENT(*p_config_change, FRAME_DROP);
         }
     }
@@ -390,3 +345,6 @@ function_c
     p_frame_data_current->config_change = *p_config_change; /* assign config change message */
     return b_dropped_last_slice;
 }
+
+// #endif //DOLBY_AC4_SPLIT_SEC
+
