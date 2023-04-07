@@ -104,6 +104,9 @@
 #include <vibrator/ExternalVibration.h>
 #include <vibrator/ExternalVibrationUtils.h>
 
+// MIUI ADD: DOLBY_ENABLE
+#include "ds_config.h"
+
 #include "android/media/BnAudioRecord.h"
 #include "android/media/BnEffect.h"
 
@@ -501,7 +504,9 @@ private:
 
     SimpleLog mThreadLog{16}; // 16 Thread history limit
 
+public:
     class ThreadBase;
+private:
     void dumpToThreadLog_l(const sp<ThreadBase> &thread);
 
     // --- Client ---
@@ -579,8 +584,10 @@ private:
     // Requests media.log to start merging log buffers
     void requestLogMerge();
 
+    class Track;
     class TrackHandle;
     class RecordHandle;
+public:
     class RecordThread;
     class PlaybackThread;
     class MixerThread;
@@ -588,13 +595,13 @@ private:
     class OffloadThread;
     class DuplicatingThread;
     class AsyncCallbackThread;
-    class Track;
     class RecordTrack;
     class EffectBase;
     class EffectModule;
     class EffectHandle;
     class EffectChain;
     class DeviceEffectProxy;
+private:
     class DeviceEffectManager;
     class PatchPanel;
     class DeviceEffectManagerCallback;
@@ -633,12 +640,13 @@ using effect_buffer_t = float;
 using effect_buffer_t = int16_t;
 #endif
 
+public:
 #include "Threads.h"
-
+private:
 #include "PatchPanel.h"
-
+public:
 #include "Effects.h"
-
+private:
 #include "DeviceEffectManager.h"
 
     // Find io handle by session id.
@@ -899,6 +907,8 @@ using effect_buffer_t = int16_t;
                 // NOTE: If both mLock and mHardwareLock mutexes must be held,
                 // always take mLock before mHardwareLock
 
+                //MIUI MODIFICATION
+                sp<PlaybackThread> mPrimaryThread;
                 // guarded by mHardwareLock
                 AudioHwDevice* mPrimaryHardwareDev;
                 DefaultKeyedVector<audio_module_handle_t, AudioHwDevice*>  mAudioHwDevs;
@@ -1037,6 +1047,8 @@ private:
              std::vector<media::audio::common::AudioMMapPolicyInfo>> mPolicyInfos;
     int32_t mAAudioBurstsPerBuffer = 0;
     int32_t mAAudioHwBurstMinMicros = 0;
+
+#include "EffectDapController.h"
 };
 
 #undef INCLUDING_FROM_AUDIOFLINGER_H

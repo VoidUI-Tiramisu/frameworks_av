@@ -355,6 +355,7 @@ cc_library {
         "libgui",
         "liblog",
         "libmedia",
+        "libmediautils",
         "libmedia_codeclist",
         "libmedia_omx",
         "libmedia_omx_client",

@@ -64,6 +64,10 @@
 #include "include/SharedMemoryBuffer.h"
 #include <media/stagefright/omx/OMXUtils.h>
 
+// MIUI ADD: DOLBY_ENABLE
+#include <mediautils/FeatureManager.h>
+// MIUI END
+
 namespace android {
 
 typedef hardware::media::omx::V1_0::IGraphicBufferSource HGraphicBufferSource;
