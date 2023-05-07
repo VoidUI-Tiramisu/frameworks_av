@@ -66,7 +66,6 @@ void TrackPlayerBase::SelfAudioDeviceCallback::onAudioDeviceUpdate(audio_io_hand
 
 void TrackPlayerBase::doDestroy() {
     if (mAudioTrack != 0) {
-        Mutex::Autolock _l(mSettingsLock);
         mAudioTrack->stop();
         mAudioTrack->removeAudioDeviceCallback(mSelfAudioDeviceCallback);
         mSelfAudioDeviceCallback.clear();
@@ -76,8 +75,8 @@ void TrackPlayerBase::doDestroy() {
 }
 
 void TrackPlayerBase::setPlayerVolume(float vl, float vr) {
-    Mutex::Autolock _l(mSettingsLock);
     {
+        Mutex::Autolock _l(mSettingsLock);
         mPlayerVolumeL = vl;
         mPlayerVolumeR = vr;
     }
