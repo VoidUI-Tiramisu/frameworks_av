@@ -55,19 +55,19 @@ static const uint32_t kParamIndexDolbyDialogEnhancementGain = 0xB205;
 #define DAPNAME_SPATIALIZER "DAP_Spatializer"
 #endif // DOLBY_SPATIALIZER
 
-#ifdef DOLBY_ATMOS_GAME
+//#ifdef DOLBY_ATMOS_GAME
 /*
     Define the Dolby Game Dap effect name
 */
 #define DAPNAME_GAME "DAP_game"
-#endif // DOLBY_ATMOS_GAME
+//#endif // DOLBY_ATMOS_GAME
 
-#ifdef DOLBY_VQE
+//#ifdef DOLBY_VQE
 /*
     Define the Dolby voice effect name
 */
 #define VQENAME "VQE"
-#endif // DOLBY_VQE
+//#endif // DOLBY_VQE
 
 /*
     Type-UUID and UUID for DAP Effect.
@@ -82,7 +82,7 @@ static const effect_uuid_t EFFECT_UUID_DAP_SW = // 6ab06da4-c516-4611-8166-45279
 static const effect_uuid_t EFFECT_UUID_DAP_HW = // a0c30891-8246-4aef-b8ad-d53e26da0253
 { 0x9d4921da, 0x8225, 0x4f29, 0xaefa, {0x39, 0x53, 0x7a, 0x04, 0xbc, 0xaa} };
 
-#ifdef DOLBY_ATMOS_GAME
+//#ifdef DOLBY_ATMOS_GAME
 /*
     Type-UUID and UUID for Game DAP Effect.
 */
@@ -94,9 +94,9 @@ static const effect_uuid_t EFFECT_UUID_GAME_DAP_SW = // f62d3a5b-e3fd-40e0-8ee4-
 { 0xf62d3a5b, 0xe3fd, 0x40e0, 0x8ee4, {0x4f, 0x1e, 0xa9, 0x0b, 0x5e, 0xd9} };
 static const effect_uuid_t EFFECT_UUID_GAME_DAP_HW = // e653a3d1-0856-4810-8d2b-3f37c29a5a17
 { 0xe653a3d1, 0x0856, 0x4810, 0x8d2b, {0x3f, 0x37, 0xc2, 0x9a, 0x5a, 0x17} };
-#endif // DOLBY_ATMOS_GAME
+//#endif // DOLBY_ATMOS_GAME
 
-#ifdef DOLBY_VQE
+//#ifdef DOLBY_VQE
 /*
     Type-UUID and UUID for VQE Effect.
     IMPORTANT NOTES: Do not change these values without updating their counterparts in DolbyVoiceEffect.java
@@ -109,7 +109,7 @@ static const effect_uuid_t EFFECT_UUID_VQE_SW = // e5f7f902-8b93-4aa2-a55e-d9acd
 { 0xe5f7f902, 0x8b93, 0x4aa2, 0xa55e, {0xd9, 0xac, 0xd7, 0x34, 0x86, 0x52} };
 static const effect_uuid_t EFFECT_UUID_VQE_HW = // 8dacff1e-4c9d-4bd6-abb1-27b386ebcc7b
 { 0x8dacff1e, 0x4c9d, 0x4bd6, 0xabb1, {0x27, 0xb3, 0x86, 0xeb, 0xcc, 0x7b} };
-#endif // DOLBY_VQE
+//#endif // DOLBY_VQE
 
 /*
    When playing Dolby Content, the gloabl DAP effect will provide 4dB system gain
@@ -136,9 +136,9 @@ enum DolbyEffectParams {
     EFFECT_PARAM_PROFILE_NAME = 6,
     EFFECT_PARAM_TUNING_VERSION = 7,
     EFFECT_PARAM_IEQ_PRESET_NAME = 8,
-#ifdef DOLBY_VQE
+//#ifdef DOLBY_VQE
     EFFECT_PARAM_VQE_VALUES = 10, // Set/Get VQE parameter(s) through Effect API
-#endif // DOLBY_VQE
+//#endif // DOLBY_VQE
     // Here internal effect params start.
     EFFECT_PARAM_SET_PREGAIN = 0x10,
     EFFECT_PARAM_SET_POSTGAIN = 0x11,
@@ -146,10 +146,10 @@ enum DolbyEffectParams {
     EFFECT_PARAM_SKIP_HARD_BYPASS = 0x13,
     EFFECT_PARAM_IO_HANDLE = 0x14,
     EFFECT_PARAM_SET_AUDIO_FLAG = 0x15,
-#ifdef DOLBY_VQE
+//#ifdef DOLBY_VQE
     // Here VQE effect params start.
     EFFECT_PARAM_RESET_NOISE_ESTIMATION = 0x0100,
-#endif // DOLBY_VQE
+//#endif // DOLBY_VQE
 
     // Here head tracking params start
     EFFECT_PARAM_HT_EN = 0x0200,
@@ -157,19 +157,19 @@ enum DolbyEffectParams {
     EFFECT_PARAM_IHT_MAN_REC_TRG,
 };
 
-#ifdef DOLBY_VQE
+//#ifdef DOLBY_VQE
 // This is event ID for VQE parameter. Use maximum significent byte to distinguish with different
 // events. Need to align with DaxVoiceParams.java.
 enum DolbyVoiceEffectEvent {
     EFFECT_PARAM_VQE_ENABLE = 0x00000000,
     // EFFECT_PARAM_VQE_XXX = 0x01000000
 };
-#endif // DOLBY_VQE
+//#endif // DOLBY_VQE
 
-#ifdef DOLBY_ATMOS_GAME
+//#ifdef DOLBY_ATMOS_GAME
 #define ATMOS_GAME_512_ACTIVE -1
 #define ATMOS_GAME_INACTIVE 0
-#endif // DOLBY_ATMOS_GAME
+//#endif // DOLBY_ATMOS_GAME
 
 #define MAX_PROFILE_NAME_LEN 32
 
